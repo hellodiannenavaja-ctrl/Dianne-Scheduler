@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Development Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;700;800&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  /* ============================================================
+     DESIGN TOKENS — refined neutral palette + intentional accents
+     ============================================================ */
+  :root {
+    /* Neutrals — warm, considered scale */
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-2: #f7f7f5;
+    --surface-3: #f0efeb;
+    --border: #e8e7e3;
+    --border-strong: #d6d4cf;
+    --border-subtle: #f0efeb;
+
+    --text: #1a1a17;
+    --text-muted: #6b6b67;
+    --text-faint: #9c9c97;
+    --text-disabled: #c4c4bf;
+
+    /* Single accent — used sparingly */
+    --accent: #1a1a17;
+    --accent-muted: #2d2d2a;
+
+    /* Semantic colors — desaturated */
+    --success: #15803d;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+
+    --info: #1d4ed8;
+    --info-bg: #eff6ff;
+    --info-border: #bfdbfe;
+
+    --warn: #a16207;
+    --warn-bg: #fefce8;
+    --warn-border: #fde68a;
+
+    --neutral-bg: #f5f5f4;
+    --neutral-border: #d6d3d1;
+
+    --danger: #b91c1c;
+    --danger-bg: #fef2f2;
+    --danger-border: #fecaca;
+
+    /* Type scale */
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-md: 15px;
+    --text-lg: 18px;
+    --text-xl: 22px;
+    --text-2xl: 28px;
+    --text-3xl: 34px;
+
+    /* Refined shadows — layered, low-contrast */
+    --shadow-xs: 0 1px 0 rgba(26, 26, 23, 0.04);
+    --shadow-sm: 0 1px 2px rgba(26, 26, 23, 0.04), 0 0 0 1px rgba(26, 26, 23, 0.04);
+    --shadow-md: 0 4px 12px rgba(26, 26, 23, 0.06), 0 1px 3px rgba(26, 26, 23, 0.04);
+    --shadow-lg: 0 12px 28px rgba(26, 26, 23, 0.08), 0 4px 8px rgba(26, 26, 23, 0.04);
+
+    /* Smooth motion */
+    --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --duration: 180ms;
+  }
+
+  /* ============================================================
+     BASE — Inter with deliberate features
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: var(--text-base);
+    line-height: 1.5;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    /* cv11 = single-story 'a', ss01 = open digits, ss03 = curly italic */
+  }
+
+  /* Numbers and dates use tabular figures */
+  .tabular,
+  td:has(time), th:has(time),
+  [class*="tabular-nums"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "cv11";
+  }
+
+  /* Display headings use tighter Inter Tight where appropriate */
+  h1, h2, .display {
+    font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  /* Loading state */
+  #root:empty::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+  }
+
+  /* ============================================================
+     TAILWIND OVERRIDES — refine the most-used utilities
+     to express the new design system without rewriting JSX
+     ============================================================ */
+
+  /* Backgrounds */
+  .bg-slate-50 { background-color: var(--bg) !important; }
+  .bg-white { background-color: var(--surface) !important; }
+  .bg-slate-100 { background-color: var(--surface-2) !important; }
+  .hover\:bg-slate-100:hover { background-color: var(--surface-2) !important; }
+  .hover\:bg-slate-50:hover { background-color: var(--surface-2) !important; }
+  .hover\:bg-slate-200:hover { background-color: var(--surface-3) !important; }
+  .bg-slate-900 { background-color: var(--accent) !important; }
+  .hover\:bg-blue-700:hover { background-color: var(--accent-muted) !important; }
+  .bg-blue-600 { background-color: var(--accent) !important; }
+
+  /* Text colors — tighter scale */
+  .text-slate-900, .text-slate-800 { color: var(--text) !important; }
+  .text-slate-700 { color: var(--text) !important; }
+  .text-slate-600 { color: var(--text-muted) !important; }
+  .text-slate-500 { color: var(--text-muted) !important; }
+  .text-slate-400 { color: var(--text-faint) !important; }
+  .text-blue-600 { color: var(--info) !important; }
+  .text-blue-700 { color: var(--info) !important; }
+  .text-emerald-700 { color: var(--success) !important; }
+  .text-amber-700 { color: var(--warn) !important; }
+  .text-red-600, .text-red-700, .text-red-800 { color: var(--danger) !important; }
+
+  /* Borders — softer */
+  .border-slate-200 { border-color: var(--border) !important; }
+  .border-slate-300 { border-color: var(--border-strong) !important; }
+  .border-slate-100 { border-color: var(--border-subtle) !important; }
+
+  /* Shadows — layered */
+  .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+  .shadow-md { box-shadow: var(--shadow-md) !important; }
+  .shadow-lg, .shadow-xl { box-shadow: var(--shadow-lg) !important; }
+
+  /* Rounded — softer corners */
+  .rounded { border-radius: 6px !important; }
+  .rounded-md { border-radius: 7px !important; }
+  .rounded-lg { border-radius: 10px !important; }
+  .rounded-full { border-radius: 999px !important; }
+
+  /* Typography refinements */
+  .text-2xl { font-size: var(--text-2xl) !important; line-height: 1.15 !important; letter-spacing: -0.025em !important; font-family: 'Inter Tight', 'Inter', sans-serif !important; }
+  .text-xl { font-size: var(--text-xl) !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; }
+  .text-lg { font-size: var(--text-lg) !important; line-height: 1.3 !important; letter-spacing: -0.015em !important; }
+  .text-base { font-size: var(--text-md) !important; line-height: 1.45 !important; letter-spacing: -0.01em !important; }
+  .text-sm { font-size: var(--text-sm) !important; line-height: 1.5 !important; }
+  .text-xs { font-size: var(--text-xs) !important; line-height: 1.45 !important; letter-spacing: 0.005em !important; }
+  .text-\[10px\], .text-\[11px\] { font-feature-settings: "tnum", "cv11" !important; letter-spacing: 0.02em !important; }
+
+  /* Headings — heavier weight, tighter tracking */
+  .font-bold { font-weight: 700 !important; }
+  .font-semibold { font-weight: 600 !important; }
+  .font-medium { font-weight: 500 !important; }
+
+  /* Numbers in summaries / counts — tabular */
+  .summary span strong,
+  .summary-stat,
+  td.numeric,
+  [class*="text-"][class*="font-semibold"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "cv11";
+  }
+
+  /* Buttons — better proportions */
+  button {
+    font-family: inherit;
+    transition: background-color var(--duration) var(--ease),
+                color var(--duration) var(--ease),
+                border-color var(--duration) var(--ease),
+                box-shadow var(--duration) var(--ease),
+                transform var(--duration) var(--ease);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0.5px);
+  }
+
+  /* Inputs — refined focus */
+  input, select, textarea {
+    font-family: inherit;
+    transition: border-color var(--duration) var(--ease),
+                box-shadow var(--duration) var(--ease);
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--text) !important;
+    box-shadow: 0 0 0 3px rgba(26, 26, 23, 0.08) !important;
+  }
+
+  /* Status pills — subtle saturation */
+  [style*="background-color: rgb(209, 250, 229)"], [style*="#d1fae5"] {
+    background-color: var(--success-bg) !important;
+    color: var(--success) !important;
+    box-shadow: inset 0 0 0 1px var(--success-border);
+  }
+  [style*="background-color: rgb(219, 234, 254)"], [style*="#dbeafe"] {
+    background-color: var(--info-bg) !important;
+    color: var(--info) !important;
+    box-shadow: inset 0 0 0 1px var(--info-border);
+  }
+  [style*="background-color: rgb(254, 243, 199)"], [style*="#fef3c7"] {
+    background-color: var(--warn-bg) !important;
+    color: var(--warn) !important;
+    box-shadow: inset 0 0 0 1px var(--warn-border);
+  }
+  [style*="background-color: rgb(243, 244, 246)"], [style*="#f3f4f6"] {
+    background-color: var(--neutral-bg) !important;
+    color: var(--text-muted) !important;
+    box-shadow: inset 0 0 0 1px var(--neutral-border);
+  }
+  [style*="background-color: rgb(226, 232, 240)"], [style*="#e2e8f0"] {
+    background-color: var(--surface-3) !important;
+    color: var(--text-muted) !important;
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  /* Table refinements */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  table thead th {
+    font-size: 10.5px !important;
+    letter-spacing: 0.06em !important;
+    font-weight: 600 !important;
+    color: var(--text-faint) !important;
+    background: var(--surface-2) !important;
+  }
+
+  table tbody tr {
+    transition: background-color var(--duration) var(--ease);
+  }
+
+  /* Modal overlay refinement */
+  .fixed.inset-0.bg-black\/40 {
+    background: rgba(20, 20, 18, 0.45) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  /* Subtle section dividers */
+  .border-b { border-bottom-color: var(--border) !important; }
+  .border-r { border-right-color: var(--border) !important; }
+  .border-t { border-top-color: var(--border) !important; }
+  .border-l { border-left-color: var(--border) !important; }
+
+  /* Tab bar refinement */
+  .bg-slate-900.text-white {
+    background: var(--accent) !important;
+    color: var(--surface) !important;
+    box-shadow: var(--shadow-xs);
+  }
+
+  /* Schedule bars retain their semantic colors but get refined shadow */
+  [style*="backgroundColor"][class*="absolute"] {
+    box-shadow: 0 1px 2px rgba(26, 26, 23, 0.12), 0 0 0 0.5px rgba(26, 26, 23, 0.08) !important;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(26, 26, 23, 0.12);
+    color: var(--text);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { height: 10px; width: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  /* Subtle entry animation on first load */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  #root > div > div { animation: fadeUp 320ms var(--ease) both; }
+
+  /* Empty state styling */
+  .border-dashed { border-style: dashed !important; border-color: var(--border-strong) !important; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useEffect, useCallback, Fragment } = React;
+
+// ---------- Hardcoded Supabase credentials ----------
+const CONFIG = {
+  url: "https://zkfgnlpxwnayqdcrqycz.supabase.co",
+  key: "sb_publishable_o4iMG4STN5vSiNefZ5dlDQ_vqiJRG6g",
+};
+
+// ---------- Inline SVG icons (replacement for lucide-react) ----------
+const Icon = ({ d, size = 14, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {d}
+  </svg>
+);
+const IconPlus = (p) => <Icon {...p} d={<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>} />;
+const IconTrash = (p) => <Icon {...p} d={<><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></>} />;
+const IconDownload = (p) => <Icon {...p} d={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>} />;
+const IconUpload = (p) => <Icon {...p} d={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>} />;
+const IconCalendar = (p) => <Icon {...p} d={<><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>} />;
+const IconX = (p) => <Icon {...p} d={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />;
+const IconSave = (p) => <Icon {...p} d={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>} />;
+const IconRefresh = (p) => <Icon {...p} d={<><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></>} />;
+const IconSettings = (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>} />;
+const IconAlert = (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>} />;
+const IconCheck = (p) => <Icon {...p} d={<polyline points="20 6 9 17 4 12"/>} />;
+
+// ---------- Date helpers ----------
+const parseDate = (s) => new Date(s + "T00:00:00");
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const dayName = (d) => ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];
+const monthName = (d) => ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+
+const buildWorkingDays = (startDateStr, weeks) => {
+  const start = parseDate(startDateStr);
+  const dow = start.getDay();
+  let mondayStart = start;
+  if (dow !== 1) {
+    const offset = dow === 0 ? 1 : 1 - dow;
+    mondayStart = addDays(start, offset);
+  }
+  const days = [];
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < 5; d++) days.push(addDays(mondayStart, w * 7 + d));
+  }
+  return days;
+};
+
+// ---------- Time slot helpers ----------
+// Working window for the Gantt is 8:00 AM to 6:00 PM (10 hours).
+const DAY_START_MIN = 8 * 60;   // 8:00 AM in minutes from midnight
+const DAY_END_MIN = 18 * 60;    // 6:00 PM
+const DAY_TOTAL_MIN = DAY_END_MIN - DAY_START_MIN; // 600 minutes
+
+// Build 30-min slot list like ["08:00","08:30",..."18:00"] (21 slots, last is end-only)
+const TIME_SLOTS = (() => {
+  const arr = [];
+  for (let m = DAY_START_MIN; m <= DAY_END_MIN; m += 30) {
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    arr.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
+  }
+  return arr;
+})();
+
+// Convert "HH:MM" string to minutes from midnight
+const timeToMin = (hhmm) => {
+  if (!hhmm || typeof hhmm !== "string") return null;
+  const [h, m] = hhmm.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+};
+
+// Format "HH:MM" 24h string to "h:mm AM/PM" for display
+const formatTime12 = (hhmm) => {
+  const min = timeToMin(hhmm);
+  if (min == null) return "";
+  const h24 = Math.floor(min / 60);
+  const m = min % 60;
+  const period = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;
+};
+
+// Format a time range "HH:MM"-"HH:MM" as a compact display string
+const formatTimeRange = (start, end) => {
+  if (!start || !end) return "";
+  return `${formatTime12(start)}–${formatTime12(end)}`;
+};
+
+const LANES = [
+  { id: "project", name: "Project / LP", color: "#2563eb", desc: "~5 hrs/day (3.5 hrs Wed)" },
+  { id: "live", name: "Go Live", color: "#d97706", desc: "Launch days" },
+  { id: "catchup", name: "Daily Catchup", color: "#0891b2", desc: "9–10 AM · 1 hr" },
+  { id: "webops", name: "Web Ops + Blog Upload", color: "#5b21b6", desc: "1–3 PM · 2 hrs" },
+  { id: "meeting", name: "L10 Meeting", color: "#be185d", desc: "Wed · 10:30 AM – 12 PM" },
+];
+
+const initialSchedule = {
+  startDate: "2026-05-04",
+  weeks: 2,
+  tasks: [
+    { id: "t1", name: "RRCP Go Live", lane: "live", startDay: 0, duration: 1, note: "1d" },
+    { id: "t2", name: "ERP Recruitment", lane: "project", startDay: 1, duration: 1, note: "1d" },
+    { id: "t3", name: "Stockton Suite LP", lane: "project", startDay: 2, duration: 1, note: "1d" },
+    { id: "t4", name: "3 × Service Pillar Pages", lane: "project", startDay: 3, duration: 2, note: "2d" },
+    { id: "t5", name: "Catchup · 9–10 AM daily", lane: "catchup", startDay: 0, duration: 5, note: "1 hr" },
+    { id: "t6", name: "Catchup · 9–10 AM daily", lane: "catchup", startDay: 5, duration: 5, note: "1 hr" },
+    { id: "t7", name: "Fixes · Updates · Edits · Blog Upload", lane: "webops", startDay: 0, duration: 5, note: "2 hrs daily" },
+    { id: "t8", name: "Fixes · Updates · Edits · Blog Upload", lane: "webops", startDay: 5, duration: 5, note: "2 hrs daily" },
+    { id: "t9", name: "L10", lane: "meeting", startDay: 2, duration: 1, note: "1.5 hrs" },
+    { id: "t10", name: "L10", lane: "meeting", startDay: 7, duration: 1, note: "1.5 hrs" },
+  ],
+};
+
+// ---------- Supabase REST API helpers ----------
+const sbHeaders = (apiKey) => ({
+  "apikey": apiKey,
+  "Authorization": `Bearer ${apiKey}`,
+  "Content-Type": "application/json",
+  "Prefer": "return=representation",
+});
+
+const sbFetch = async (url, key, options = {}) => {
+  const res = await fetch(url, { ...options, headers: { ...sbHeaders(key), ...(options.headers || {}) } });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase error (${res.status}): ${text}`);
+  }
+  return res.json();
+};
+
+const listSchedulesAPI = (url, key) => sbFetch(`${url}/rest/v1/schedules?select=id,name,updated_at&order=updated_at.desc`, key);
+const loadScheduleAPI = async (url, key, id) => {
+  const rows = await sbFetch(`${url}/rest/v1/schedules?id=eq.${encodeURIComponent(id)}&select=*`, key);
+  return rows[0];
+};
+const upsertScheduleAPI = (url, key, row) => sbFetch(`${url}/rest/v1/schedules`, key, {
+  method: "POST",
+  headers: { "Prefer": "resolution=merge-duplicates,return=representation" },
+  body: JSON.stringify(row),
+});
+const deleteScheduleAPI = (url, key, id) => fetch(`${url}/rest/v1/schedules?id=eq.${encodeURIComponent(id)}`, {
+  method: "DELETE", headers: sbHeaders(key),
+});
+
+// ---------- localStorage helpers (replacement for window.storage) ----------
+const ls = {
+  get: (key) => { try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch { return null; } },
+  set: (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } },
+  delete: (key) => { try { localStorage.removeItem(key); return true; } catch { return false; } },
+};
+
+// ---------- Daily template ----------
+const DailyTemplate = () => {
+  const slots = ["8:00","8:30","9:00","9:30","10:00","10:30","11:00","11:30","12:00","12:30","1:00","1:30","2:00","2:30","3:00","3:30","4:00","4:30"];
+  const regular = [
+    { label: "Project Work", span: 2, color: "#2563eb" },
+    { label: "Daily Catchup", span: 2, color: "#0891b2" },
+    { label: "Project Work", span: 4, color: "#2563eb" },
+    { label: "Lunch", span: 2, color: "#94a3b8" },
+    { label: "Web Ops + Blog Upload", span: 4, color: "#5b21b6" },
+    { label: "Project Work", span: 4, color: "#2563eb" },
+  ];
+  const wed = [
+    { label: "Project Work", span: 2, color: "#2563eb" },
+    { label: "Daily Catchup", span: 2, color: "#0891b2" },
+    { label: "Proj.", span: 1, color: "#2563eb" },
+    { label: "L10 Meeting · 10:30 – 12:00", span: 3, color: "#be185d" },
+    { label: "Lunch", span: 2, color: "#94a3b8" },
+    { label: "Web Ops + Blog Upload", span: 4, color: "#5b21b6" },
+    { label: "Project Work", span: 4, color: "#2563eb" },
+  ];
+
+  const renderRow = (blocks, title, sub) => (
+    <div className="mb-5">
+      <div className="text-sm font-semibold text-slate-800 mb-2">
+        {title} <span className="font-normal text-xs text-slate-500">— {sub}</span>
+      </div>
+      <div className="overflow-x-auto">
+        <div className="border border-slate-200 rounded-md overflow-hidden" style={{ display: "grid", gridTemplateColumns: "9rem repeat(18, minmax(2.6rem, 1fr))", minWidth: "70rem" }}>
+          <div className="bg-slate-100 border-r border-slate-300 border-b border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 flex items-center">Time</div>
+          {slots.map((t, i) => (
+            <div key={i} className="bg-slate-50 border-r border-slate-200 border-b border-slate-300 text-center text-[10px] font-semibold text-slate-600 py-2" style={i % 2 === 0 ? { borderLeft: "1px solid #d7dae4" } : {}}>{t}</div>
+          ))}
+          <div className="bg-slate-50 border-r border-slate-300 border-b border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 flex flex-col justify-center">
+            Schedule<span className="text-[10px] font-normal text-slate-500">8 AM – 5 PM</span>
+          </div>
+          {blocks.map((b, i) => (
+            <div key={i} className="border-r border-slate-200 border-b border-slate-200 text-white text-[11px] font-semibold flex items-center justify-center text-center px-1 py-2 leading-tight" style={{ gridColumn: `span ${b.span}`, backgroundColor: b.color }}>
+              {b.label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {renderRow(regular, "Regular Day · Mon, Tue, Thu, Fri", "5 hrs project work")}
+      {renderRow(wed, "Wednesday", "3.5 hrs project work (L10 reduces capacity)")}
+      <div className="mt-3 px-3 py-2.5 bg-slate-50 border-l-[3px] border-pink-700 rounded text-xs text-slate-600 leading-relaxed">
+        <strong className="text-slate-800 font-semibold">Daily allocations:</strong> Catchup 1h (9–10 AM) · Web Ops 2h (1–3 PM) · Lunch 12–1 PM · L10 Wed 10:30 AM–12 PM (1.5h).
+      </div>
+    </div>
+  );
+};
+
+// ---------- Picker ----------
+const PickerScreen = ({ onPick, onForget }) => {
+  const [schedules, setSchedules] = useState(null);
+  const [error, setError] = useState(null);
+  const [newName, setNewName] = useState("");
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    try { setSchedules(await listSchedulesAPI(CONFIG.url, CONFIG.key)); }
+    catch (err) { setError(err.message); }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return;
+    const id = `sched_${Date.now()}`;
+    try {
+      await upsertScheduleAPI(CONFIG.url, CONFIG.key, { id, name: newName.trim(), data: initialSchedule, updated_at: new Date().toISOString() });
+      onPick({ id, name: newName.trim(), data: initialSchedule });
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleLoad = async (id) => {
+    try {
+      const row = await loadScheduleAPI(CONFIG.url, CONFIG.key, id);
+      onPick({ id: row.id, name: row.name, data: row.data });
+    } catch (err) { setError(err.message); }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!confirm(`Delete "${name}"? Cannot be undone.`)) return;
+    try { await deleteScheduleAPI(CONFIG.url, CONFIG.key, id); refresh(); }
+    catch (err) { setError(err.message); }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-w-2xl w-full">
+        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Choose Schedule</h2>
+            <p className="text-xs text-slate-500">Load existing or create new.</p>
+          </div>
+          <button onClick={refresh} className="p-2 text-slate-600 hover:bg-slate-100 rounded" title="Refresh"><IconRefresh /></button>
+        </div>
+        <div className="px-6 py-4">
+          {error && (
+            <div className="bg-red-50 border-l-2 border-red-500 px-3 py-2 rounded text-xs text-red-800 mb-4 flex items-start gap-2">
+              <IconAlert size={14} className="mt-0.5 shrink-0" /><span>{error}</span>
+            </div>
+          )}
+          {schedules === null ? (
+            <div className="text-sm text-slate-500 text-center py-8">Loading...</div>
+          ) : schedules.length === 0 ? (
+            <div className="text-sm text-slate-500 text-center py-8 bg-slate-50 rounded border border-dashed border-slate-300">No schedules yet.</div>
+          ) : (
+            <div className="space-y-1.5 mb-4">
+              {schedules.map((s) => (
+                <div key={s.id} className="flex items-center justify-between border border-slate-200 rounded px-3 py-2 hover:bg-slate-50">
+                  <button onClick={() => handleLoad(s.id)} className="text-left flex-1">
+                    <div className="text-sm font-semibold text-slate-800">{s.name}</div>
+                    <div className="text-[11px] text-slate-500">Updated {new Date(s.updated_at).toLocaleString()}</div>
+                  </button>
+                  <button onClick={() => handleDelete(s.id, s.name)} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><IconTrash /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="border-t border-slate-200 pt-4">
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Create New</label>
+            <div className="flex gap-2">
+              <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Q2 Sprint May 4-15" className="flex-1 px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button onClick={handleCreate} disabled={!newName.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white text-sm font-semibold rounded inline-flex items-center gap-1.5">
+                <IconPlus /> Create
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Task modal ----------
+const TaskModal = ({ task, days, onSave, onDelete, onClose, isNew }) => {
+  const [form, setForm] = useState({
+    name: task.name,
+    lane: task.lane,
+    startDay: task.startDay,
+    duration: task.duration,
+    startTime: task.startTime || "",
+    endTime: task.endTime || "",
+    note: task.note || "",
+  });
+  const handleSave = () => {
+    if (!form.name.trim()) return alert("Task name required.");
+    if (form.startDay < 0 || form.startDay >= days.length) return alert("Start day out of range.");
+
+    const hasStart = !!form.startTime;
+    const hasEnd = !!form.endTime;
+    if (hasStart !== hasEnd) {
+      return alert("Either set both Start Time and End Time, or leave both empty.");
+    }
+
+    let startTime = null;
+    let endTime = null;
+    if (hasStart && hasEnd) {
+      const sMin = timeToMin(form.startTime);
+      const eMin = timeToMin(form.endTime);
+      if (sMin == null || eMin == null) return alert("Invalid time format.");
+      if (eMin <= sMin) return alert("End Time must be after Start Time.");
+      if (sMin < DAY_START_MIN || eMin > DAY_END_MIN) {
+        return alert(`Times must be within 8:00 AM – 6:00 PM.`);
+      }
+      startTime = form.startTime;
+      endTime = form.endTime;
+    }
+
+    if (!startTime) {
+      // Day-scale: validate duration
+      if (form.duration < 1 || form.startDay + form.duration > days.length) return alert("Duration extends beyond range.");
+    }
+
+    onSave({
+      ...task,
+      name: form.name,
+      lane: form.lane,
+      startDay: form.startDay,
+      duration: form.duration,
+      startTime,
+      endTime,
+      // Clear legacy hours field when saving via this UI
+      hours: null,
+      note: form.note,
+    });
+  };
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-semibold text-slate-800">{isNew ? "Add Task" : "Edit Task"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><IconX size={18} /></button>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Name</label>
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Lane</label>
+            <select value={form.lane} onChange={(e) => setForm({ ...form, lane: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {LANES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Start Day</label>
+              <select value={form.startDay} onChange={(e) => setForm({ ...form, startDay: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {days.map((d, i) => <option key={i} value={i}>{dayName(d)} {monthName(d)} {d.getDate()}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Duration (days)</label>
+              <input type="number" min="1" max={days.length} value={form.duration} onChange={(e) => setForm({ ...form, duration: parseInt(e.target.value) || 1 })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Start Time</label>
+              <select value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— None —</option>
+                {TIME_SLOTS.slice(0, -1).map((t) => <option key={t} value={t}>{formatTime12(t)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">End Time</label>
+              <select value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— None —</option>
+                {TIME_SLOTS.slice(1).map((t) => <option key={t} value={t}>{formatTime12(t)}</option>)}
+              </select>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-500 -mt-2">
+            Set both times for a precise time slot (e.g. 4:30 PM – 5:30 PM). Leave both blank for a full-day task. Range: 8:00 AM – 6:00 PM.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Note</label>
+            <input type="text" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 rounded-b-lg">
+          {!isNew ? (
+            <button onClick={() => { if (confirm("Delete?")) onDelete(task.id); }} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded inline-flex items-center gap-1.5">
+              <IconTrash /> Delete
+            </button>
+          ) : <div />}
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded inline-flex items-center gap-1.5">
+              <IconSave /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SettingsModal = ({ schedule, onSave, onClose }) => {
+  const [form, setForm] = useState({ startDate: schedule.startDate, weeks: schedule.weeks });
+  const handleSave = () => {
+    if (form.weeks < 1 || form.weeks > 12) return alert("Weeks 1-12.");
+    onSave(form);
+  };
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-semibold text-slate-800">Schedule Range</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><IconX size={18} /></button>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Start Date</label>
+            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Weeks</label>
+            <input type="number" min="1" max="12" value={form.weeks} onChange={(e) => setForm({ ...form, weeks: parseInt(e.target.value) || 1 })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-slate-200 flex justify-end gap-2 bg-slate-50 rounded-b-lg">
+          <button onClick={onClose} className="px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded">Cancel</button>
+          <button onClick={handleSave} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded inline-flex items-center gap-1.5"><IconSave /> Apply</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Editor ----------
+const Editor = ({ scheduleMeta, onBack }) => {
+  const [schedule, setSchedule] = useState(scheduleMeta.data);
+  const [editingTask, setEditingTask] = useState(null);
+  const [isNewTask, setIsNewTask] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [saveError, setSaveError] = useState(null);
+  const fileInputRef = useRef(null);
+  const debounceRef = useRef(null);
+  const isFirstRender = useRef(true);
+
+  const days = useMemo(() => buildWorkingDays(schedule.startDate, schedule.weeks), [schedule.startDate, schedule.weeks]);
+  const numCols = days.length;
+
+  const tasksByLane = useMemo(() => {
+    const grouped = {};
+    LANES.forEach((l) => (grouped[l.id] = []));
+    schedule.tasks.forEach((t) => { if (grouped[t.lane]) grouped[t.lane].push(t); });
+    return grouped;
+  }, [schedule.tasks]);
+
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSaveStatus("saving");
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await upsertScheduleAPI(CONFIG.url, CONFIG.key, { id: scheduleMeta.id, name: scheduleMeta.name, data: schedule, updated_at: new Date().toISOString() });
+        setSaveStatus("saved"); setSaveError(null);
+        setTimeout(() => setSaveStatus("idle"), 1500);
+      } catch (err) {
+        setSaveStatus("error"); setSaveError(err.message);
+      }
+    }, 800);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [schedule, scheduleMeta]);
+
+  const handleAddTask = () => {
+    setEditingTask({ id: `t${Date.now()}`, name: "New Task", lane: "project", startDay: 0, duration: 1, startTime: "", endTime: "", hours: null, note: "" });
+    setIsNewTask(true);
+  };
+  const handleSaveTask = (task) => {
+    setSchedule((prev) => {
+      const exists = prev.tasks.find((t) => t.id === task.id);
+      const tasks = exists ? prev.tasks.map((t) => (t.id === task.id ? task : t)) : [...prev.tasks, task];
+      return { ...prev, tasks };
+    });
+    setEditingTask(null); setIsNewTask(false);
+  };
+  const handleDeleteTask = (id) => {
+    setSchedule((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== id) }));
+    setEditingTask(null);
+  };
+  const handleSaveJSON = () => {
+    const blob = new Blob([JSON.stringify(schedule, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${scheduleMeta.name.replace(/[^a-z0-9]/gi, "_")}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const handleLoadJSON = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const loaded = JSON.parse(ev.target.result);
+        if (!loaded.startDate || !loaded.weeks || !Array.isArray(loaded.tasks)) throw new Error("Invalid format");
+        setSchedule(loaded);
+      } catch (err) { alert("Failed: " + err.message); }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+  const handleReload = async () => {
+    try {
+      const row = await loadScheduleAPI(CONFIG.url, CONFIG.key, scheduleMeta.id);
+      isFirstRender.current = true;
+      setSchedule(row.data);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 1500);
+    } catch (err) { alert("Reload failed: " + err.message); }
+  };
+
+  const startDateObj = parseDate(schedule.startDate);
+  const endDate = days.length ? days[days.length - 1] : startDateObj;
+
+  const StatusBadge = () => {
+    if (saveStatus === "saving") return <span className="inline-flex items-center gap-1 text-xs text-slate-500"><IconRefresh size={11} className="animate-spin" /> Saving...</span>;
+    if (saveStatus === "saved") return <span className="inline-flex items-center gap-1 text-xs text-emerald-700"><IconCheck size={11} /> Saved</span>;
+    if (saveStatus === "error") return <span className="inline-flex items-center gap-1 text-xs text-red-600" title={saveError}><IconAlert size={11} /> Save failed</span>;
+    return <span className="text-xs text-slate-400">Synced</span>;
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="max-w-[100rem] mx-auto px-6 py-8">
+        <div className="flex items-end justify-between gap-4 mb-5 flex-wrap">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold tracking-tight" style={{ fontWeight: 700 }}>{scheduleMeta.name}</h1>
+              <StatusBadge />
+            </div>
+            <p className="text-sm text-slate-500" style={{ fontWeight: 450 }}>
+              {monthName(startDateObj)} {startDateObj.getDate()} – {monthName(endDate)} {endDate.getDate()}, {endDate.getFullYear()} · {schedule.weeks}-week sprint · Mon–Fri only
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {onBack && <button onClick={onBack} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm">← Schedules</button>}
+            <button onClick={handleReload} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm" title="Pull latest"><IconRefresh /> Reload</button>
+            <button onClick={handleAddTask} className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded shadow-sm"><IconPlus /> Add Task</button>
+            <button onClick={() => setShowSettings(true)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm"><IconCalendar /> Range</button>
+            <button onClick={handleSaveJSON} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm" title="Backup as JSON"><IconDownload /></button>
+            <button onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm" title="Import JSON"><IconUpload /></button>
+            <input type="file" accept=".json" ref={fileInputRef} onChange={handleLoadJSON} className="hidden" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 bg-white p-2.5 border border-slate-200 rounded-lg shadow-sm mb-5">
+          {LANES.map((l) => (
+            <span key={l.id} className="inline-flex items-center gap-2 px-2.5 py-1 rounded text-xs font-medium text-slate-600">
+              <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: l.color }} />{l.name}
+            </span>
+          ))}
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-bold tracking-tight">Project Schedule</span>
+              <span className="text-xs text-slate-500">{numCols} working days · Click any task bar to edit</span>
+            </div>
+            <span className="text-[11px] font-semibold tracking-wide uppercase text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-full">Gantt View</span>
+          </div>
+          <div className="overflow-x-auto">
+            <div style={{ display: "grid", gridTemplateColumns: `14rem repeat(${numCols}, minmax(5.5rem, 1fr))`, minWidth: `${14 + numCols * 5.5}rem` }}>
+              <div className="bg-slate-50 border-r border-slate-200 border-b border-slate-300" />
+              {days.map((d, i) => {
+                const isFriday = d.getDay() === 5;
+                const isLast = i === days.length - 1;
+                return (
+                  <div key={i} className="bg-white border-b border-slate-300 text-center py-2 px-1 flex flex-col items-center gap-0.5" style={{ borderRight: isLast ? "none" : isFriday ? "2px solid #d7dae4" : "1px solid #e6e8ef" }}>
+                    <span className="text-[10px] font-semibold tracking-wider uppercase text-slate-400">{dayName(d)}</span>
+                    <span className="text-sm font-bold text-slate-800">{d.getDate()}</span>
+                    <span className="text-[10px] text-slate-500">{monthName(d)}</span>
+                  </div>
+                );
+              })}
+              {LANES.map((lane) => (
+                <Fragment key={lane.id}>
+                  <div className="px-3 py-3 border-r border-slate-200 border-b border-slate-200 bg-slate-50 flex flex-col gap-0.5 justify-center min-h-[3.75rem]">
+                    <span className="text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: lane.color }} />{lane.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500">{lane.desc}</span>
+                  </div>
+                  <div className="relative border-b border-slate-200 min-h-[3.75rem] bg-white" style={{ gridColumn: `2 / ${2 + numCols}`, display: "grid", gridTemplateColumns: `repeat(${numCols}, 1fr)` }}>
+                    <div className="absolute inset-0 pointer-events-none opacity-70" style={{ backgroundImage: "linear-gradient(to right, #e6e8ef 1px, transparent 1px)", backgroundSize: `${100 / numCols}% 100%` }} />
+                    {Array.from({ length: schedule.weeks - 1 }).map((_, wi) => (
+                      <div key={wi} className="absolute top-0 bottom-0 w-0.5 bg-slate-300 pointer-events-none" style={{ left: `${((wi + 1) * 5 / numCols) * 100}%` }} />
+                    ))}
+                    {tasksByLane[lane.id].map((task) => {
+                      if (task.startDay >= numCols) return null;
+
+                      // Time-scale task: render proportional within its day column based on startTime/endTime
+                      if (task.startTime && task.endTime) {
+                        const sMin = timeToMin(task.startTime);
+                        const eMin = timeToMin(task.endTime);
+                        if (sMin == null || eMin == null || eMin <= sMin) return null;
+
+                        const startFrac = (sMin - DAY_START_MIN) / DAY_TOTAL_MIN;
+                        const widthFrac = (eMin - sMin) / DAY_TOTAL_MIN;
+                        const dayWidth = 1 / numCols;
+
+                        const leftPct = (task.startDay / numCols + startFrac * dayWidth) * 100;
+                        const widthPct = widthFrac * dayWidth * 100;
+
+                        return (
+                          <button
+                            key={task.id}
+                            onClick={() => { setEditingTask(task); setIsNewTask(false); }}
+                            className="absolute top-1/2 -translate-y-1/2 rounded text-xs font-semibold text-white shadow-sm hover:brightness-110 hover:shadow-md transition-all whitespace-nowrap overflow-hidden text-ellipsis text-left flex items-center gap-1"
+                            style={{
+                              left: `calc(${leftPct}% + 0.15%)`,
+                              width: `calc(${widthPct}% - 0.3%)`,
+                              height: "1.75rem",
+                              padding: "0 6px",
+                              backgroundColor: lane.color,
+                              opacity: 0.92,
+                              zIndex: 2,
+                            }}
+                            title={`${task.name} · ${formatTimeRange(task.startTime, task.endTime)}`}
+                          >
+                            <span className="overflow-hidden text-ellipsis">{task.name}</span>
+                            <span className="opacity-80 font-normal text-[10px] shrink-0">· {formatTimeRange(task.startTime, task.endTime)}</span>
+                          </button>
+                        );
+                      }
+
+                      // Legacy hour-scale task (existing data with hours field but no startTime)
+                      if (task.hours != null && task.hours > 0) {
+                        const HOURS_PER_DAY = 10; // matches new 8 AM–6 PM window
+                        const dayWidth = 1 / numCols;
+                        const widthFrac = task.hours / HOURS_PER_DAY;
+                        const leftPct = (task.startDay / numCols) * 100;
+                        const widthPct = widthFrac * dayWidth * 100;
+                        return (
+                          <button
+                            key={task.id}
+                            onClick={() => { setEditingTask(task); setIsNewTask(false); }}
+                            className="absolute top-1/2 -translate-y-1/2 rounded text-xs font-semibold text-white shadow-sm hover:brightness-110 hover:shadow-md transition-all whitespace-nowrap overflow-hidden text-ellipsis text-left flex items-center gap-1"
+                            style={{
+                              left: `calc(${leftPct}% + 0.15%)`,
+                              width: `calc(${widthPct}% - 0.3%)`,
+                              height: "1.75rem",
+                              padding: "0 6px",
+                              backgroundColor: lane.color,
+                              opacity: 0.92,
+                              zIndex: 2,
+                            }}
+                            title={`${task.name} · ${task.hours}h`}
+                          >
+                            <span className="overflow-hidden text-ellipsis">{task.name}</span>
+                            <span className="opacity-80 font-normal text-[10px] shrink-0">· {task.hours}h</span>
+                          </button>
+                        );
+                      }
+
+                      // Day-scale task (full-day or multi-day)
+                      const dur = Math.min(task.duration, numCols - task.startDay);
+                      return (
+                        <button key={task.id} onClick={() => { setEditingTask(task); setIsNewTask(false); }} className="absolute top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-semibold text-white shadow-sm hover:brightness-110 hover:shadow-md transition-all whitespace-nowrap overflow-hidden text-ellipsis text-left flex items-center gap-1.5" style={{ left: `calc(${(task.startDay / numCols) * 100}% + 0.2%)`, width: `calc(${(dur / numCols) * 100}% - 0.4%)`, height: "2.25rem", backgroundColor: lane.color, zIndex: 1 }} title="Click to edit">
+                          <span className="overflow-hidden text-ellipsis">{task.name}</span>
+                          {task.note && <span className="opacity-80 font-normal text-[10px]">· {task.note}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Fragment>
+              ))}
+            </div>
+          </div>
+          <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600">
+            <span><strong className="text-slate-800 font-semibold">{numCols}</strong> working days</span>
+            <span><strong className="text-slate-800 font-semibold">{schedule.tasks.length}</strong> tasks</span>
+            <span>Auto-saves to cloud · Reload pulls latest</span>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-bold tracking-tight">Daily Hour-by-Hour Template</span>
+              <span className="text-xs text-slate-500">8 AM – 5 PM · Fixed</span>
+            </div>
+          </div>
+          <div className="p-5"><DailyTemplate /></div>
+        </div>
+      </div>
+
+      {editingTask && <TaskModal task={editingTask} days={days} onSave={handleSaveTask} onDelete={handleDeleteTask} onClose={() => { setEditingTask(null); setIsNewTask(false); }} isNew={isNewTask} />}
+      {showSettings && <SettingsModal schedule={schedule} onSave={(s) => { setSchedule((prev) => ({ ...prev, ...s })); setShowSettings(false); }} onClose={() => setShowSettings(false)} />}
+    </div>
+  );
+};
+
+// ---------- Landing Pages API helpers ----------
+const listLPsAPI = (url, key) => sbFetch(`${url}/rest/v1/landing_pages?select=*&order=date_launched.desc.nullsfirst,created_at.desc`, key);
+const upsertLPAPI = (url, key, row) => sbFetch(`${url}/rest/v1/landing_pages`, key, {
+  method: "POST",
+  headers: { "Prefer": "resolution=merge-duplicates,return=representation" },
+  body: JSON.stringify(row),
+});
+const deleteLPAPI = (url, key, id) => fetch(`${url}/rest/v1/landing_pages?id=eq.${encodeURIComponent(id)}`, {
+  method: "DELETE", headers: sbHeaders(key),
+});
+
+// ---------- Blogs API helpers ----------
+const listBlogsAPI = (url, key) => sbFetch(`${url}/rest/v1/blogs?select=*&order=publish_date.desc.nullsfirst,created_at.desc`, key);
+const upsertBlogAPI = (url, key, row) => sbFetch(`${url}/rest/v1/blogs`, key, {
+  method: "POST",
+  headers: { "Prefer": "resolution=merge-duplicates,return=representation" },
+  body: JSON.stringify(row),
+});
+const deleteBlogAPI = (url, key, id) => fetch(`${url}/rest/v1/blogs?id=eq.${encodeURIComponent(id)}`, {
+  method: "DELETE", headers: sbHeaders(key),
+});
+
+// ---------- LP constants ----------
+const LP_STATUSES = [
+  { id: "Live", color: "#059669", bg: "#d1fae5", text: "#065f46" },
+  { id: "In Progress", color: "#2563eb", bg: "#dbeafe", text: "#1e40af" },
+  { id: "For Review", color: "#a16207", bg: "#fef3c7", text: "#854d0e" },
+  { id: "Draft", color: "#6b7280", bg: "#f3f4f6", text: "#374151" },
+  { id: "Archived", color: "#475569", bg: "#e2e8f0", text: "#334155" },
+];
+const BLOG_STATUSES = [
+  { id: "Live", color: "#059669", bg: "#d1fae5", text: "#065f46" },
+  { id: "In Progress", color: "#2563eb", bg: "#dbeafe", text: "#1e40af" },
+  { id: "For Review", color: "#a16207", bg: "#fef3c7", text: "#854d0e" },
+  { id: "Draft", color: "#6b7280", bg: "#f3f4f6", text: "#374151" },
+  { id: "Archived", color: "#475569", bg: "#e2e8f0", text: "#334155" },
+];
+const LP_CATEGORIES = ["Campaign", "Service Page", "Product", "Lead Gen", "Marketing Tools", "Other"];
+const LP_BRANDS = ["Atticus", "Stockton10"];
+
+// ---------- LP edit modal ----------
+const LPModal = ({ lp, onSave, onDelete, onClose, isNew }) => {
+  const [form, setForm] = useState({
+    name: lp.name || "",
+    url: lp.url || "",
+    status: lp.status || "In Progress",
+    category: lp.category || "Campaign",
+    brand: lp.brand || "",
+    date_launched: lp.date_launched || "",
+    notes: lp.notes || "",
+  });
+
+  const handleSave = () => {
+    if (!form.name.trim()) return alert("Name is required.");
+    onSave({
+      ...lp,
+      name: form.name.trim(),
+      url: form.url.trim() || null,
+      status: form.status,
+      category: form.category,
+      brand: form.brand || null,
+      date_launched: form.date_launched || null,
+      notes: form.notes.trim() || null,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-semibold text-slate-800">{isNew ? "Add Landing Page" : "Edit Landing Page"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><IconX size={18} /></button>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Name</label>
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. RRCP Recruitment" className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">URL</label>
+            <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Status</label>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {LP_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.id}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Category</label>
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {LP_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Brand</label>
+              <select value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— None —</option>
+                {LP_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Date Launched</label>
+              <input type="date" value={form.date_launched} onChange={(e) => setForm({ ...form, date_launched: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Notes</label>
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows="3" placeholder="Campaign tag, A/B variant, etc." className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 rounded-b-lg">
+          {!isNew ? (
+            <button onClick={() => { if (confirm("Delete this landing page?")) onDelete(lp.id); }} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded inline-flex items-center gap-1.5">
+              <IconTrash /> Delete
+            </button>
+          ) : <div />}
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded inline-flex items-center gap-1.5">
+              <IconSave /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Landing Pages view ----------
+const LandingPagesView = () => {
+  const [lps, setLps] = useState(null);
+  const [error, setError] = useState(null);
+  const [editingLP, setEditingLP] = useState(null);
+  const [isNewLP, setIsNewLP] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterBrand, setFilterBrand] = useState("all");
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    try { setLps(await listLPsAPI(CONFIG.url, CONFIG.key)); }
+    catch (err) { setError(err.message); }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const handleAdd = () => {
+    setEditingLP({ id: `lp_${Date.now()}`, name: "", url: "", status: "In Progress", category: "Campaign", brand: "", date_launched: "", notes: "" });
+    setIsNewLP(true);
+  };
+
+  const handleSave = async (lp) => {
+    try {
+      const row = {
+        ...lp,
+        updated_at: new Date().toISOString(),
+      };
+      await upsertLPAPI(CONFIG.url, CONFIG.key, row);
+      setEditingLP(null); setIsNewLP(false);
+      refresh();
+    } catch (err) { alert("Save failed: " + err.message); }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteLPAPI(CONFIG.url, CONFIG.key, id);
+      setEditingLP(null);
+      refresh();
+    } catch (err) { alert("Delete failed: " + err.message); }
+  };
+
+  const filtered = useMemo(() => {
+    if (!lps) return null;
+    return lps.filter((lp) => {
+      if (filterStatus !== "all" && lp.status !== filterStatus) return false;
+      if (filterCategory !== "all" && lp.category !== filterCategory) return false;
+      if (filterBrand !== "all") {
+        if (filterBrand === "none" && lp.brand) return false;
+        if (filterBrand !== "none" && lp.brand !== filterBrand) return false;
+      }
+      return true;
+    });
+  }, [lps, filterStatus, filterCategory, filterBrand]);
+
+  const statusInfo = (statusId) => LP_STATUSES.find((s) => s.id === statusId) || LP_STATUSES[2];
+
+  // Counts for the summary footer
+  const counts = useMemo(() => {
+    if (!lps) return { total: 0, live: 0, inProgress: 0, forReview: 0, draft: 0, archived: 0 };
+    return {
+      total: lps.length,
+      live: lps.filter((l) => l.status === "Live").length,
+      inProgress: lps.filter((l) => l.status === "In Progress").length,
+      forReview: lps.filter((l) => l.status === "For Review").length,
+      draft: lps.filter((l) => l.status === "Draft").length,
+      archived: lps.filter((l) => l.status === "Archived").length,
+    };
+  }, [lps]);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 flex-wrap gap-2">
+        <div className="flex items-baseline gap-2">
+          <span className="text-base font-bold tracking-tight">Landing Pages</span>
+          <span className="text-xs text-slate-500">All shipped & in-progress LPs · Click row to edit</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-2 py-1.5 border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All statuses</option>
+            {LP_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.id}</option>)}
+          </select>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="px-2 py-1.5 border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All categories</option>
+            {LP_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)} className="px-2 py-1.5 border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All brands</option>
+            {LP_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            <option value="none">— No brand —</option>
+          </select>
+          <button onClick={refresh} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded border border-slate-300" title="Refresh"><IconRefresh /></button>
+          <button onClick={handleAdd} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded">
+            <IconPlus /> Add Landing Page
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="px-4 py-3 bg-red-50 border-b border-red-200 text-xs text-red-800 flex items-start gap-2">
+          <IconAlert size={14} className="mt-0.5 shrink-0" /><span>{error}</span>
+        </div>
+      )}
+
+      {filtered === null ? (
+        <div className="p-12 text-center text-sm text-slate-500">
+          <div className="inline-flex items-center gap-2"><IconRefresh size={14} className="animate-spin" /> Loading...</div>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="p-12 text-center text-sm text-slate-500">
+          {lps.length === 0 ? (
+            <>
+              <p className="mb-2">No landing pages yet.</p>
+              <p className="text-xs">Click "Add Landing Page" to track your first one.</p>
+            </>
+          ) : (
+            <p>No landing pages match the current filters.</p>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" style={{ minWidth: "60rem" }}>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                <th className="text-left font-semibold px-4 py-2.5">Name</th>
+                <th className="text-left font-semibold px-4 py-2.5">URL</th>
+                <th className="text-left font-semibold px-4 py-2.5">Status</th>
+                <th className="text-left font-semibold px-4 py-2.5">Category</th>
+                <th className="text-left font-semibold px-4 py-2.5">Brand</th>
+                <th className="text-left font-semibold px-4 py-2.5">Launched</th>
+                <th className="text-left font-semibold px-4 py-2.5">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((lp) => {
+                const sInfo = statusInfo(lp.status);
+                return (
+                  <tr key={lp.id} onClick={() => { setEditingLP(lp); setIsNewLP(false); }} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                    <td className="px-4 py-3 font-semibold text-slate-800">{lp.name}</td>
+                    <td className="px-4 py-3 text-slate-600 max-w-xs">
+                      {lp.url ? (
+                        <a href={lp.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-blue-600 hover:underline font-mono text-xs truncate inline-block max-w-full">
+                          {lp.url}
+                        </a>
+                      ) : <span className="text-slate-400 italic text-xs">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: sInfo.bg, color: sInfo.text }}>
+                        {lp.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 text-xs">{lp.category || <span className="text-slate-400 italic">—</span>}</td>
+                    <td className="px-4 py-3 text-slate-700 text-xs font-medium">{lp.brand || <span className="text-slate-400 italic font-normal">—</span>}</td>
+                    <td className="px-4 py-3 text-slate-600 text-xs whitespace-nowrap">
+                      {lp.date_launched ? new Date(lp.date_launched + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : <span className="text-slate-400 italic">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 text-xs max-w-xs truncate">{lp.notes || <span className="text-slate-400 italic">—</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600">
+        <span><strong className="text-slate-800 font-semibold">{counts.total}</strong> total</span>
+        <span><strong className="text-emerald-700 font-semibold">{counts.live}</strong> live</span>
+        <span><strong className="text-blue-700 font-semibold">{counts.inProgress}</strong> in progress</span>
+        <span><strong className="text-amber-700 font-semibold">{counts.forReview}</strong> for review</span>
+        <span><strong className="text-slate-700 font-semibold">{counts.draft}</strong> draft</span>
+        <span><strong className="text-slate-600 font-semibold">{counts.archived}</strong> archived</span>
+      </div>
+
+      {editingLP && <LPModal lp={editingLP} onSave={handleSave} onDelete={handleDelete} onClose={() => { setEditingLP(null); setIsNewLP(false); }} isNew={isNewLP} />}
+    </div>
+  );
+};
+
+// ---------- Blog edit modal ----------
+const BlogModal = ({ blog, onSave, onDelete, onClose, isNew }) => {
+  const [form, setForm] = useState({
+    title: blog.title || "",
+    url: blog.url || "",
+    status: blog.status || "In Progress",
+    brand: blog.brand || "",
+    category: blog.category || "",
+    publish_date: blog.publish_date || "",
+    notes: blog.notes || "",
+  });
+
+  const handleSave = () => {
+    if (!form.title.trim()) return alert("Title is required.");
+    onSave({
+      ...blog,
+      title: form.title.trim(),
+      url: form.url.trim() || null,
+      status: form.status,
+      brand: form.brand || null,
+      category: form.category.trim() || null,
+      publish_date: form.publish_date || null,
+      notes: form.notes.trim() || null,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-semibold text-slate-800">{isNew ? "Add Blog" : "Edit Blog"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><IconX size={18} /></button>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Title</label>
+            <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. 5 Recruitment Trends in 2026" className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">URL</label>
+            <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Status</label>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {BLOG_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.id}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Brand</label>
+              <select value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— None —</option>
+                {LP_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Category</label>
+            <input type="text" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Recruitment Trends, Industry Insights, How-to" className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p className="text-[11px] text-slate-500 mt-1">Free text — type whatever fits.</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Publish Date</label>
+            <input type="date" value={form.publish_date} onChange={(e) => setForm({ ...form, publish_date: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Notes</label>
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows="3" placeholder="Series, target keyword, author, etc." className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-slate-200 flex items-center justify-between bg-slate-50 rounded-b-lg">
+          {!isNew ? (
+            <button onClick={() => { if (confirm("Delete this blog?")) onDelete(blog.id); }} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded inline-flex items-center gap-1.5">
+              <IconTrash /> Delete
+            </button>
+          ) : <div />}
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded inline-flex items-center gap-1.5">
+              <IconSave /> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Blogs view ----------
+const BlogsView = () => {
+  const [blogs, setBlogs] = useState(null);
+  const [error, setError] = useState(null);
+  const [editingBlog, setEditingBlog] = useState(null);
+  const [isNewBlog, setIsNewBlog] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterBrand, setFilterBrand] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("");
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    try { setBlogs(await listBlogsAPI(CONFIG.url, CONFIG.key)); }
+    catch (err) { setError(err.message); }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const handleAdd = () => {
+    setEditingBlog({ id: `blog_${Date.now()}`, title: "", url: "", status: "In Progress", brand: "", category: "", publish_date: "", notes: "" });
+    setIsNewBlog(true);
+  };
+
+  const handleSave = async (blog) => {
+    try {
+      const row = { ...blog, updated_at: new Date().toISOString() };
+      await upsertBlogAPI(CONFIG.url, CONFIG.key, row);
+      setEditingBlog(null); setIsNewBlog(false);
+      refresh();
+    } catch (err) { alert("Save failed: " + err.message); }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteBlogAPI(CONFIG.url, CONFIG.key, id);
+      setEditingBlog(null);
+      refresh();
+    } catch (err) { alert("Delete failed: " + err.message); }
+  };
+
+  const filtered = useMemo(() => {
+    if (!blogs) return null;
+    return blogs.filter((b) => {
+      if (filterStatus !== "all" && b.status !== filterStatus) return false;
+      if (filterBrand !== "all") {
+        if (filterBrand === "none" && b.brand) return false;
+        if (filterBrand !== "none" && b.brand !== filterBrand) return false;
+      }
+      if (filterCategory.trim()) {
+        const needle = filterCategory.trim().toLowerCase();
+        const hay = (b.category || "").toLowerCase();
+        if (!hay.includes(needle)) return false;
+      }
+      return true;
+    });
+  }, [blogs, filterStatus, filterBrand, filterCategory]);
+
+  const statusInfo = (statusId) => BLOG_STATUSES.find((s) => s.id === statusId) || BLOG_STATUSES[2];
+
+  const counts = useMemo(() => {
+    if (!blogs) return { total: 0, live: 0, inProgress: 0, forReview: 0, draft: 0, archived: 0 };
+    return {
+      total: blogs.length,
+      live: blogs.filter((b) => b.status === "Live").length,
+      inProgress: blogs.filter((b) => b.status === "In Progress").length,
+      forReview: blogs.filter((b) => b.status === "For Review").length,
+      draft: blogs.filter((b) => b.status === "Draft").length,
+      archived: blogs.filter((b) => b.status === "Archived").length,
+    };
+  }, [blogs]);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 flex-wrap gap-2">
+        <div className="flex items-baseline gap-2">
+          <span className="text-base font-bold tracking-tight">Blogs</span>
+          <span className="text-xs text-slate-500">All blog posts · Click row to edit</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-2 py-1.5 border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All statuses</option>
+            {BLOG_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.id}</option>)}
+          </select>
+          <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)} className="px-2 py-1.5 border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All brands</option>
+            {LP_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            <option value="none">— No brand —</option>
+          </select>
+          <input type="text" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} placeholder="Filter category..." className="px-2 py-1.5 border border-slate-300 rounded text-xs w-36 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button onClick={refresh} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded border border-slate-300" title="Refresh"><IconRefresh /></button>
+          <button onClick={handleAdd} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded">
+            <IconPlus /> Add Blog
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="px-4 py-3 bg-red-50 border-b border-red-200 text-xs text-red-800 flex items-start gap-2">
+          <IconAlert size={14} className="mt-0.5 shrink-0" /><span>{error}</span>
+        </div>
+      )}
+
+      {filtered === null ? (
+        <div className="p-12 text-center text-sm text-slate-500">
+          <div className="inline-flex items-center gap-2"><IconRefresh size={14} className="animate-spin" /> Loading...</div>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="p-12 text-center text-sm text-slate-500">
+          {blogs.length === 0 ? (
+            <>
+              <p className="mb-2">No blogs yet.</p>
+              <p className="text-xs">Click "Add Blog" to track your first one.</p>
+            </>
+          ) : (
+            <p>No blogs match the current filters.</p>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" style={{ minWidth: "55rem" }}>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                <th className="text-left font-semibold px-4 py-2.5">Title</th>
+                <th className="text-left font-semibold px-4 py-2.5">URL</th>
+                <th className="text-left font-semibold px-4 py-2.5">Status</th>
+                <th className="text-left font-semibold px-4 py-2.5">Brand</th>
+                <th className="text-left font-semibold px-4 py-2.5">Category</th>
+                <th className="text-left font-semibold px-4 py-2.5">Published</th>
+                <th className="text-left font-semibold px-4 py-2.5">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((b) => {
+                const sInfo = statusInfo(b.status);
+                return (
+                  <tr key={b.id} onClick={() => { setEditingBlog(b); setIsNewBlog(false); }} className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                    <td className="px-4 py-3 font-semibold text-slate-800">{b.title}</td>
+                    <td className="px-4 py-3 text-slate-600 max-w-xs">
+                      {b.url ? (
+                        <a href={b.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-blue-600 hover:underline font-mono text-xs truncate inline-block max-w-full">
+                          {b.url}
+                        </a>
+                      ) : <span className="text-slate-400 italic text-xs">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: sInfo.bg, color: sInfo.text }}>
+                        {b.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-700 text-xs font-medium">{b.brand || <span className="text-slate-400 italic font-normal">—</span>}</td>
+                    <td className="px-4 py-3 text-slate-600 text-xs">{b.category || <span className="text-slate-400 italic">—</span>}</td>
+                    <td className="px-4 py-3 text-slate-600 text-xs whitespace-nowrap">
+                      {b.publish_date ? new Date(b.publish_date + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : <span className="text-slate-400 italic">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 text-xs max-w-xs truncate">{b.notes || <span className="text-slate-400 italic">—</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600">
+        <span><strong className="text-slate-800 font-semibold">{counts.total}</strong> total</span>
+        <span><strong className="text-emerald-700 font-semibold">{counts.live}</strong> live</span>
+        <span><strong className="text-blue-700 font-semibold">{counts.inProgress}</strong> in progress</span>
+        <span><strong className="text-amber-700 font-semibold">{counts.forReview}</strong> for review</span>
+        <span><strong className="text-slate-700 font-semibold">{counts.draft}</strong> draft</span>
+        <span><strong className="text-slate-600 font-semibold">{counts.archived}</strong> archived</span>
+      </div>
+
+      {editingBlog && <BlogModal blog={editingBlog} onSave={handleSave} onDelete={handleDelete} onClose={() => { setEditingBlog(null); setIsNewBlog(false); }} isNew={isNewBlog} />}
+    </div>
+  );
+};
+
+// ---------- Export logic (XLSX via SheetJS) ----------
+
+// Returns [start, end] Date objects (inclusive start, exclusive end) for the named range
+const getRangeDates = (rangeName) => {
+  const now = new Date();
+  if (rangeName === "this_month") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return { start, end, label: `${monthName(start)} ${start.getFullYear()}` };
+  }
+  if (rangeName === "last_month") {
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start, end, label: `${monthName(start)} ${start.getFullYear()}` };
+  }
+  // all_time
+  return { start: null, end: null, label: "All Time" };
+};
+
+const inRange = (dateStr, start, end) => {
+  if (!dateStr) return false; // exclude undated
+  if (!start || !end) return true; // all_time
+  const d = new Date(dateStr + "T00:00:00");
+  return d >= start && d < end;
+};
+
+const buildExport = async (rangeName, scheduleData) => {
+  if (typeof XLSX === "undefined") {
+    throw new Error("XLSX library not loaded. Refresh the page and try again.");
+  }
+  const { start, end, label } = getRangeDates(rangeName);
+
+  // Fetch fresh data for LPs and Blogs at export time
+  const [lps, blogs] = await Promise.all([
+    listLPsAPI(CONFIG.url, CONFIG.key),
+    listBlogsAPI(CONFIG.url, CONFIG.key),
+  ]);
+
+  const wb = XLSX.utils.book_new();
+
+  // ---- Sheet 1: Schedule ----
+  // Per spec, always export full current schedule regardless of filter
+  const days = buildWorkingDays(scheduleData.startDate, scheduleData.weeks);
+  const scheduleRows = scheduleData.tasks.map((t) => {
+    const isTimeScale = !!(t.startTime && t.endTime);
+    const isHourScale = !isTimeScale && t.hours != null && t.hours > 0;
+    const startDateObj = days[t.startDay] || null;
+    // For sub-day tasks end date = start date
+    const endDateObj = (isTimeScale || isHourScale)
+      ? startDateObj
+      : (days[Math.min(t.startDay + t.duration - 1, days.length - 1)] || null);
+    const laneName = (LANES.find((l) => l.id === t.lane) || {}).name || t.lane;
+    return {
+      "Task Name": t.name,
+      "Lane": laneName,
+      "Start Date": startDateObj ? startDateObj.toISOString().slice(0, 10) : "",
+      "End Date": endDateObj ? endDateObj.toISOString().slice(0, 10) : "",
+      "Start Time": isTimeScale ? formatTime12(t.startTime) : "",
+      "End Time": isTimeScale ? formatTime12(t.endTime) : "",
+      "Duration (days)": (isTimeScale || isHourScale) ? "" : t.duration,
+      "Hours": isHourScale ? t.hours : (isTimeScale ? ((timeToMin(t.endTime) - timeToMin(t.startTime)) / 60) : ""),
+      "Note": t.note || "",
+    };
+  });
+  // Add a header summary row
+  const scheduleMeta = [
+    [`Schedule: ${scheduleData.startDate} · ${scheduleData.weeks} week(s) · ${days.length} working days`],
+    [],
+  ];
+  const wsSchedule = XLSX.utils.aoa_to_sheet(scheduleMeta);
+  XLSX.utils.sheet_add_json(wsSchedule, scheduleRows, { origin: "A3" });
+  wsSchedule["!cols"] = [{ wch: 36 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 11 }, { wch: 11 }, { wch: 14 }, { wch: 8 }, { wch: 28 }];
+  XLSX.utils.book_append_sheet(wb, wsSchedule, "Schedule");
+
+  // ---- Sheet 2: Landing Pages ----
+  const lpFiltered = lps.filter((lp) => inRange(lp.date_launched, start, end));
+  const lpRows = lpFiltered.map((lp) => ({
+    "Name": lp.name || "",
+    "URL": lp.url || "",
+    "Status": lp.status || "",
+    "Category": lp.category || "",
+    "Brand": lp.brand || "",
+    "Date Launched": lp.date_launched || "",
+    "Notes": lp.notes || "",
+  }));
+  const lpMeta = [
+    [`Landing Pages · ${label} · ${lpFiltered.length} item(s) shipped`],
+    [],
+  ];
+  const wsLP = XLSX.utils.aoa_to_sheet(lpMeta);
+  if (lpRows.length > 0) {
+    XLSX.utils.sheet_add_json(wsLP, lpRows, { origin: "A3" });
+  } else {
+    XLSX.utils.sheet_add_aoa(wsLP, [["No landing pages shipped in this range."]], { origin: "A3" });
+  }
+  wsLP["!cols"] = [{ wch: 30 }, { wch: 40 }, { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 36 }];
+  XLSX.utils.book_append_sheet(wb, wsLP, "Landing Pages");
+
+  // ---- Sheet 3: Blogs ----
+  const blogFiltered = blogs.filter((b) => inRange(b.publish_date, start, end));
+  const blogRows = blogFiltered.map((b) => ({
+    "Title": b.title || "",
+    "URL": b.url || "",
+    "Status": b.status || "",
+    "Brand": b.brand || "",
+    "Category": b.category || "",
+    "Publish Date": b.publish_date || "",
+    "Notes": b.notes || "",
+  }));
+  const blogMeta = [
+    [`Blogs · ${label} · ${blogFiltered.length} item(s) published`],
+    [],
+  ];
+  const wsBlog = XLSX.utils.aoa_to_sheet(blogMeta);
+  if (blogRows.length > 0) {
+    XLSX.utils.sheet_add_json(wsBlog, blogRows, { origin: "A3" });
+  } else {
+    XLSX.utils.sheet_add_aoa(wsBlog, [["No blogs published in this range."]], { origin: "A3" });
+  }
+  wsBlog["!cols"] = [{ wch: 36 }, { wch: 40 }, { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 14 }, { wch: 36 }];
+  XLSX.utils.book_append_sheet(wb, wsBlog, "Blogs");
+
+  // Filename
+  const today = new Date().toISOString().slice(0, 10);
+  let fileLabel;
+  if (rangeName === "all_time") fileLabel = "all-time";
+  else fileLabel = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`;
+  const filename = `marketing-export_${fileLabel}_${today}.xlsx`;
+
+  XLSX.writeFile(wb, filename);
+  return { lpCount: lpFiltered.length, blogCount: blogFiltered.length, label };
+};
+
+// ---------- Export Button ----------
+const IconDownloadCloud = (p) => <Icon {...p} d={<><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></>} />;
+
+const ExportButton = ({ scheduleData }) => {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const containerRef = useRef(null);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const doExport = async (rangeName) => {
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await buildExport(rangeName, scheduleData);
+      setSuccess(`Exported ${result.label}: ${result.lpCount} LP(s), ${result.blogCount} blog(s).`);
+      setTimeout(() => setSuccess(null), 4000);
+      setTimeout(() => setOpen(false), 600);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-sm font-semibold rounded shadow-sm"
+      >
+        <IconDownloadCloud /> Export
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 rounded-lg shadow-lg z-30 p-3">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 px-1">Download as XLSX</div>
+          <div className="flex flex-col gap-1">
+            <button onClick={() => doExport("this_month")} disabled={busy} className="text-left px-3 py-2 rounded text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span className="block text-slate-800">This month</span>
+              <span className="block text-[11px] text-slate-500">{getRangeDates("this_month").label}</span>
+            </button>
+            <button onClick={() => doExport("last_month")} disabled={busy} className="text-left px-3 py-2 rounded text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span className="block text-slate-800">Last month</span>
+              <span className="block text-[11px] text-slate-500">{getRangeDates("last_month").label}</span>
+            </button>
+            <button onClick={() => doExport("all_time")} disabled={busy} className="text-left px-3 py-2 rounded text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span className="block text-slate-800">All time</span>
+              <span className="block text-[11px] text-slate-500">Everything with a date</span>
+            </button>
+          </div>
+          {busy && (
+            <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800 inline-flex items-center gap-1.5">
+              <IconRefresh size={12} className="animate-spin" /> Building file...
+            </div>
+          )}
+          {success && (
+            <div className="mt-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800 inline-flex items-start gap-1.5">
+              <IconCheck size={12} className="mt-0.5 shrink-0" /><span>{success}</span>
+            </div>
+          )}
+          {error && (
+            <div className="mt-2 px-3 py-2 bg-red-50 border border-red-200 rounded text-xs text-red-800 flex items-start gap-1.5">
+              <IconAlert size={12} className="mt-0.5 shrink-0" /><span>{error}</span>
+            </div>
+          )}
+          <div className="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-400 px-1">
+            Schedule sheet always shows current state. LP & Blog sheets filtered by launch/publish date in selected range.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------- App root ----------
+const SINGLE_SCHEDULE_ID = "my_schedule";
+const SINGLE_SCHEDULE_NAME = "My Schedule";
+
+const TabBar = ({ activeTab, onChange }) => (
+  <div className="bg-white border border-slate-200 rounded-lg shadow-sm inline-flex p-1 gap-0.5" style={{ padding: "5px" }}>
+    {[
+      { id: "schedule", label: "Schedule" },
+      { id: "landing_pages", label: "Landing Pages" },
+      { id: "blogs", label: "Blogs" },
+    ].map((tab) => {
+      const active = activeTab === tab.id;
+      return (
+        <button
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
+          className={`text-sm rounded ${
+            active
+              ? "bg-slate-900 text-white"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+          style={{
+            padding: "8px 16px",
+            fontWeight: active ? 600 : 500,
+            letterSpacing: "-0.005em",
+          }}
+        >
+          {tab.label}
+        </button>
+      );
+    })}
+  </div>
+);
+
+const Workspace = ({ scheduleMeta }) => {
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = ls.get("active_tab");
+    const v = saved?.value;
+    if (v === "landing_pages" || v === "blogs") return v;
+    return "schedule";
+  });
+
+  const handleTabChange = (id) => {
+    setActiveTab(id);
+    ls.set("active_tab", id);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="max-w-[100rem] mx-auto px-6" style={{ paddingTop: "32px" }}>
+        <div className="flex items-center justify-between gap-3 flex-wrap" style={{ marginBottom: "24px" }}>
+          <TabBar activeTab={activeTab} onChange={handleTabChange} />
+          <ExportButton scheduleData={scheduleMeta.data} />
+        </div>
+      </div>
+      {activeTab === "schedule" && <Editor scheduleMeta={scheduleMeta} onBack={null} />}
+      {activeTab === "landing_pages" && (
+        <div className="max-w-[100rem] mx-auto px-6 pb-8 pt-2">
+          <LandingPagesView />
+        </div>
+      )}
+      {activeTab === "blogs" && (
+        <div className="max-w-[100rem] mx-auto px-6 pb-8 pt-2">
+          <BlogsView />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const App = () => {
+  const [pickedSchedule, setPickedSchedule] = useState(null);
+  const [bootState, setBootState] = useState("loading");
+  const [bootError, setBootError] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let row = await loadScheduleAPI(CONFIG.url, CONFIG.key, SINGLE_SCHEDULE_ID);
+        if (!row) {
+          const created = await upsertScheduleAPI(CONFIG.url, CONFIG.key, {
+            id: SINGLE_SCHEDULE_ID,
+            name: SINGLE_SCHEDULE_NAME,
+            data: initialSchedule,
+            updated_at: new Date().toISOString(),
+          });
+          row = Array.isArray(created) ? created[0] : created;
+        }
+        setPickedSchedule({ id: row.id, name: row.name, data: row.data });
+        setBootState("ready");
+      } catch (err) {
+        setBootError(err.message);
+        setBootState("error");
+      }
+    })();
+  }, []);
+
+  if (bootState === "loading") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-sm text-slate-500">
+        <div className="inline-flex items-center gap-2"><IconRefresh size={14} className="animate-spin" /> Loading your schedule...</div>
+      </div>
+    );
+  }
+
+  if (bootState === "error") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-md bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+          <div className="flex items-start gap-2 text-red-700 mb-3">
+            <IconAlert size={18} className="mt-0.5 shrink-0" />
+            <h2 className="text-base font-semibold">Failed to load schedule</h2>
+          </div>
+          <p className="text-sm text-slate-600 mb-3">The app couldn't reach Supabase. Try refreshing the page.</p>
+          <p className="text-xs text-slate-500 font-mono bg-slate-50 p-2 rounded border border-slate-200 break-all">{bootError}</p>
+          <button onClick={() => window.location.reload()} className="mt-4 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded">
+            <IconRefresh /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <Workspace scheduleMeta={pickedSchedule} />;
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
